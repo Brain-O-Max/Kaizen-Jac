@@ -1,0 +1,19 @@
+{
+  "name": "kaizen-jac",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,admin -c blue,yellow \"npm:dev:web\" \"npm:dev:admin\"",
+    "dev:web": "npm run dev --workspace=@kaizen/web",
+    "dev:admin": "npm run dev --workspace=@kaizen/admin",
+    "build": "npm run build --workspace=@kaizen/web && npm run build --workspace=@kaizen/admin",
+    "start:web": "npm run start --workspace=@kaizen/web",
+    "start:admin": "npm run start --workspace=@kaizen/admin"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
