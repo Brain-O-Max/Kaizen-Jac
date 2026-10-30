@@ -207,10 +207,6 @@ export default function BusinessesSection({ siteData, selectedBusinessId, onInqu
                     Click any project card below to inspect full specifications, locations, and floor plans.
                   </p>
                 </div>
-
-                <div className="text-xs font-mono text-slate-500">
-                  Total Entries: {currentBusiness.projects.length}
-                </div>
               </div>
 
               {/* Projects Grid */}
@@ -264,10 +260,7 @@ export default function BusinessesSection({ siteData, selectedBusinessId, onInqu
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-xs">
-                      <span className="text-[10px] text-slate-500 font-mono">
-                        ID: {proj.id}
-                      </span>
+                    <div className="pt-3 border-t border-slate-900 flex items-center justify-end text-xs">
                       <button
                         onClick={() => setSelectedProject(proj)}
                         className="flex items-center gap-1 font-semibold text-blue-400 hover:text-blue-300 transition-colors"
