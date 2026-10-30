@@ -1,38 +1,48 @@
 # Kaizen JAC
 
-npm-workspaces monorepo with two Next.js apps that share one content store.
+Company website and admin panel in a single Next.js 16 app.
+
+| URL | What |
+| --- | --- |
+| `/` | Public website |
+| `/admin` | Admin panel: edit content, upload media, read contact-form inquiries (password protected) |
 
 ```
-apps/
-  web/        Public website            → http://localhost:3000
-  admin/      Admin panel (login, content editor, media uploads) → http://localhost:3001
-packages/
-  content/    Shared content defaults, storage (content.json + uploads), admin auth helpers
-storage/      Created at runtime: content.json and uploads/ (git-ignored)
-_legacy-vite/ The previous Vite + React site, kept for reference — safe to delete
+src/app/                 Routes — website at /, admin under /admin, APIs under /api
+src/components/site/     Website sections
+src/components/admin/    Admin UI (content editor, media library, inquiries)
+src/lib/                 Content storage, uploads, inquiries, admin auth
+src/proxy.js             Requires an admin session for /admin and /api/admin
+seed-uploads/            Original photos, served as a fallback for /uploads/<name>
+_legacy-vite/            The previous Vite site, kept for reference — safe to delete
 ```
 
-## Getting started
+## Local development
 
 ```bash
 npm install
-cp apps/admin/.env.example apps/admin/.env.local   # then set ADMIN_PASSWORD and ADMIN_SESSION_SECRET
-npm run dev                                         # runs web and admin together
+cp .env.example .env.local   # then set ADMIN_PASSWORD and ADMIN_SESSION_SECRET
+npm run dev                  # http://localhost:3000 and http://localhost:3000/admin
 ```
 
-`npm run dev:web` / `npm run dev:admin` run one app; `npm run build` builds both.
+## How content is stored
 
-## How content flows
+Everything the admin changes lives in one storage folder (`KAIZEN_STORAGE_DIR`, default `./storage`, git-ignored):
 
-- Until an admin saves, both apps serve the defaults in `packages/content/src/defaults.js`.
-- Saving in the admin writes `storage/content.json`; the website reads it on every request, so changes are live immediately.
-- Uploads (JPG, PNG, WebP, GIF, AVIF, PDF; max 10 MB) are saved to `storage/uploads/` and served at `/uploads/<file>` by **both** apps.
-  The original photos ship in `packages/content/seed-uploads/` and are used as a fallback.
-- Contact-form submissions are saved one file each in `storage/inquiries/` and appear under **Inquiries** in the admin
-  (new / read / replied / archived). The form has a hidden honeypot field and a per-IP limit of 5 submissions per 10 minutes.
+- `content.json` — site text, contacts, businesses, projects. Until it exists the defaults in `src/lib/defaults.js` are used.
+- `uploads/` — images and PDFs uploaded in the admin (max 10 MB each), served at `/uploads/<file>`.
+- `inquiries/` — one JSON file per contact-form submission. The form has a hidden honeypot field and a per-IP limit of 5 submissions per 10 minutes.
 
-## Deploying
+## Deploying to Hostinger (Business or Cloud web hosting)
 
-Both apps need to read the same `storage` folder, so run them on the same server (or point `KAIZEN_STORAGE_DIR` at a shared volume).
-For serverless hosting such as Vercel, where the filesystem isn't persistent, swap the functions in `packages/content/src/index.js`
-for a database and object storage (e.g. Postgres + S3/R2); the apps only use that module's exports.
+1. In hPanel go to **Websites → Add website → Node.js Apps**, connect GitHub and pick this repo, branch `main`.
+2. Framework preset **Next.js**, Node.js **22**, package manager **npm**, build command `npm run build`.
+3. Add environment variables:
+   - `ADMIN_PASSWORD` — the admin login password
+   - `ADMIN_SESSION_SECRET` — a long random string (e.g. output of `openssl rand -hex 32`)
+   - `KAIZEN_STORAGE_DIR` — an absolute path **outside** the app's build folder, e.g. `/home/<hostinger-user>/kaizen-storage`.
+     Hostinger replaces the build folder on every deploy, so storage inside it would be lost.
+4. Deploy, then open `https://<domain>/admin` and sign in.
+5. Check that storage survives a deploy: upload an image in the admin, redeploy, and confirm it still shows.
+
+To update the site, push to `main` and redeploy from hPanel.
