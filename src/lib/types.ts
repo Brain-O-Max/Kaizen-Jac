@@ -59,6 +59,26 @@ export interface Project {
   [key: string]: string | undefined;
 }
 
+// One product in a catalog category (e.g. a type of infant formula).
+export interface ProductItem {
+  name: string;
+  description: string;
+  image?: string;
+}
+
+// A group of related products shown on the Kaizen Enterprise page.
+export interface ProductCategory {
+  id: string;
+  title: string;
+  // Small label above the title, e.g. "Food Imports · Infant Nutrition".
+  tag: string;
+  summary: string;
+  items: ProductItem[];
+}
+
+// The Kaizen Enterprise business has its own page (/enterprise); the other divisions share the home page.
+export const ENTERPRISE_ID = 'enterprise';
+
 export interface Business {
   id: string;
   name: string;
@@ -76,6 +96,7 @@ export interface Business {
   projects: Project[];
   ports?: string[];
   trainingModel?: string;
+  productCategories?: ProductCategory[];
 }
 
 export interface SiteContent {

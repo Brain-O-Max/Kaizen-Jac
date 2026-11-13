@@ -2,8 +2,10 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { Check, Download, Loader2, Plus, Save, Trash2 } from 'lucide-react';
-import type { Office, Project, Service, SiteContent, Stat } from '@/lib/types';
+import { ENTERPRISE_ID, type Office, type ProductCategory, type Project, type Service, type SiteContent, type Stat } from '@/lib/types';
 import ImageField from './ImageField';
+import ProductCatalogEditor from './ProductCatalogEditor';
+import TextField from './TextField';
 
 // A location inside the content object, e.g. ['businesses', 0, 'name'].
 type Path = readonly (string | number)[];
@@ -27,26 +29,6 @@ const humanize = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/^./, (
 const LONG_FIELDS = new Set(['description', 'highlights', 'summary', 'overview']);
 
 type SaveStatus = { state: 'idle' | 'saving' | 'saved' } | { state: 'error'; message: string };
-
-interface TextFieldProps {
-  label: string;
-  value: string | undefined;
-  onChange: (value: string) => void;
-  multiline?: boolean;
-}
-
-function TextField({ label, value, onChange, multiline }: TextFieldProps) {
-  return (
-    <div>
-      <label className="field-label">{label}</label>
-      {multiline ? (
-        <textarea rows={3} value={value ?? ''} onChange={(e) => onChange(e.target.value)} className="field-input" />
-      ) : (
-        <input type="text" value={value ?? ''} onChange={(e) => onChange(e.target.value)} className="field-input" />
-      )}
-    </div>
-  );
-}
 
 interface StringListProps {
   label: string;
@@ -349,6 +331,14 @@ export default function ContentEditor({ initialContent }: { initialContent: Site
               onChange={field<Service[]>(bPath('services')).onChange}
             />
           </Section>
+          {business.id === ENTERPRISE_ID && (
+            <Section title="Product catalog (shown on the Enterprise page)">
+              <ProductCatalogEditor
+                categories={business.productCategories}
+                onChange={field<ProductCategory[]>(bPath('productCategories')).onChange}
+              />
+            </Section>
+          )}
           <Section title="Projects / programs">
             <ObjectList
               label="Portfolio items"

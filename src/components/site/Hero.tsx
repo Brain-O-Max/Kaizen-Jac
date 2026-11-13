@@ -1,5 +1,6 @@
 import type { SiteContent } from '@/lib/types';
-import { ArrowRight, Building2, Globe2, GraduationCap } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, ArrowUpRight, Building2, Globe2, GraduationCap } from 'lucide-react';
 
 interface HeroProps {
   siteData: SiteContent;
@@ -61,13 +62,14 @@ export default function Hero({ siteData, onSelectBusiness }: HeroProps) {
                 <span>Design & Development</span>
               </button>
 
-              <button
-                onClick={() => onSelectBusiness('enterprise')}
+              <Link
+                href="/enterprise"
                 className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-slate-900/80 hover:bg-teal-950/40 border border-slate-800 hover:border-teal-700/60 text-slate-300 hover:text-white transition-all text-xs font-semibold"
               >
                 <Globe2 className="w-4 h-4 text-teal-400" />
                 <span>Enterprise (Trade)</span>
-              </button>
+                <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
+              </Link>
 
               <button
                 onClick={() => onSelectBusiness('training-center')}

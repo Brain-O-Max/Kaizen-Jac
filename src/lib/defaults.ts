@@ -150,12 +150,55 @@ export const defaultContent: SiteContent = {
         "Zero Unexpected Demurrage: Masterful bank documentation & L/C execution."
       ],
       services: [
-        { name: "Food Imports (Feeding the Nation)", desc: "Bulk edible oils, pulses, dairy powder (Aus/NZ), FMCG snacks, and fresh/dried fruits." },
+        { name: "Food Imports (Feeding the Nation)", desc: "Bulk edible oils, pulses, dairy powder (Aus/NZ), FMCG snacks, fresh/dried fruits, and infant milk & baby food supplements." },
         { name: "Food Exports (Flavors of Bangladesh)", desc: "Premium Chinigura/Kalijira aromatic rice, HACCP frozen Black Tiger shrimp, and organic spices." },
         { name: "Non-Food Imports (Industrial & Retail)", desc: "Personal care, household plastic polymer granules, and RMG textile yarns/dyes." },
         { name: "Non-Food Exports (Global Manufacturing)", desc: "Ethically manufactured RMG knitwear/denim, eco-friendly jute products, and finished leather." }
       ],
       ports: ["Chattogram Seaport", "Mongla Seaport", "Benapole Land Port", "Hazrat Shahjalal Int'l Airport (Dhaka)"],
+      // Product catalog shown on the /enterprise page; editable in the admin panel.
+      productCategories: [
+        {
+          id: "infant-milk",
+          title: "Infant Milk Supplements (Formula)",
+          tag: "Food Imports · Infant Nutrition",
+          summary: "Infant formula and milk supplements for newborns, infants and toddlers.",
+          items: [
+            {
+              name: "First Infant Formula",
+              description: "Based on whey protein, this is the primary choice for newborns and babies up to 12 months if breastfeeding is not used or needs supplementing."
+            },
+            {
+              name: "Follow-On & Growing-Up Milk",
+              description: "Designed for older infants and toddlers (from 6 months to 2+ years) to complement a broadening solid-food diet, such as Aptamil Stage 4 or Nido."
+            },
+            {
+              name: "Vitamin D and Micronutrients",
+              description: "Exclusively breastfed babies or those consuming less than 500ml of formula per day generally require a daily vitamin D supplement (8.5 to 10 µg) from birth."
+            }
+          ]
+        },
+        {
+          id: "baby-food",
+          title: "Baby Food Supplements",
+          tag: "Food Imports · Infant Nutrition",
+          summary: "Complementary foods and fortified cereals for babies from 6 months.",
+          items: [
+            {
+              name: "Complementary Foods (6+ Months)",
+              description: "Solid foods should start around 6 months while continuing breast milk or formula. Begin with iron-fortified baby cereals, pureed vegetables, fruits, and soft mashable foods."
+            },
+            {
+              name: "Fortified Cereals",
+              description: "Products like Nestlé Cerelac provide added iron, zinc, and energy to support rapid cognitive and physical development."
+            },
+            {
+              name: "Calorie and Nutrient Boosting",
+              description: "For slow-weight-gain scenarios under medical guidance, dry iron-fortified cereal or powdered baby formula can be mixed into pureed meats or vegetables."
+            }
+          ]
+        }
+      ],
       // Extended Detailed Trade Portfolio Items
       projects: [
         {

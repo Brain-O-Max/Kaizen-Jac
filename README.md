@@ -4,7 +4,8 @@ Company website and admin panel in a single Next.js 16 app, written in TypeScrip
 
 | URL | What |
 | --- | --- |
-| `/` | Public website |
+| `/` | Public website: Kaizen JAC group, Kaizen Design & Development and Kaizen Training Center |
+| `/enterprise` | Kaizen Enterprise page: trade lines, product catalog (food imports incl. infant nutrition), contact form |
 | `/admin` | Admin panel: edit content, upload media, read contact-form inquiries (password protected) |
 
 ```
@@ -30,7 +31,7 @@ npm run typecheck            # strict TypeScript check (also runs during `npm ru
 
 Everything the admin changes lives in one storage folder (`KAIZEN_STORAGE_DIR`, default `./storage`, git-ignored):
 
-- `content.json` — site text, contacts, businesses, projects. Until it exists the defaults in `src/lib/defaults.ts` are used (shape defined in `src/lib/types.ts`).
+- `content.json` — site text, contacts, businesses, projects and the Enterprise product catalog (admin → Enterprise tab → Product catalog). Until it exists the defaults in `src/lib/defaults.ts` are used (shape defined in `src/lib/types.ts`).
 - `uploads/` — images and PDFs uploaded in the admin (max 10 MB each), served at `/uploads/<file>`.
 - `inquiries/` — one JSON file per contact-form submission. The form has a hidden honeypot field and a per-IP limit of 5 submissions per 10 minutes.
 

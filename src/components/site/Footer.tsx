@@ -1,7 +1,31 @@
-import type { SiteContent } from '@/lib/types';
+import { ENTERPRISE_ID, type SiteContent } from '@/lib/types';
 import { Phone, Mail, MapPin, ArrowUp } from 'lucide-react';
+import NavAnchor from './NavAnchor';
 
-export default function Footer({ siteData }: { siteData: SiteContent }) {
+const NAV_LINKS = {
+  group: [
+    { name: 'Home', href: '#home' },
+    { name: 'About Kaizen JAC', href: '#about' },
+    { name: 'Business Divisions', href: '#businesses' },
+    { name: 'Why Choose Us', href: '#philosophy' },
+    { name: 'Contact Corporate Office', href: '#contact' },
+    { name: 'Kaizen Enterprise', href: '/enterprise' },
+  ],
+  enterprise: [
+    { name: 'Kaizen JAC Home', href: '/' },
+    { name: 'Overview', href: '#home' },
+    { name: 'Products', href: '#products' },
+    { name: 'Trade Lines', href: '#trade' },
+    { name: 'Contact Us', href: '#contact' },
+  ],
+};
+
+interface FooterProps {
+  siteData: SiteContent;
+  variant?: 'group' | 'enterprise';
+}
+
+export default function Footer({ siteData, variant = 'group' }: FooterProps) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -40,11 +64,11 @@ export default function Footer({ siteData }: { siteData: SiteContent }) {
               Navigation
             </h4>
             <ul className="space-y-2 text-xs">
-              <li><a href="#home" className="hover:text-white transition-colors">Home</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">About Kaizen JAC</a></li>
-              <li><a href="#businesses" className="hover:text-white transition-colors">Business Divisions</a></li>
-              <li><a href="#philosophy" className="hover:text-white transition-colors">Why Choose Us</a></li>
-              <li><a href="#contact" className="hover:text-white transition-colors">Contact Corporate Office</a></li>
+              {NAV_LINKS[variant].map((link) => (
+                <li key={link.name}>
+                  <NavAnchor href={link.href} className="hover:text-white transition-colors">{link.name}</NavAnchor>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -56,9 +80,12 @@ export default function Footer({ siteData }: { siteData: SiteContent }) {
             <ul className="space-y-2 text-xs">
               {siteData.businesses.map(b => (
                 <li key={b.id}>
-                  <a href="#businesses" className="hover:text-blue-400 transition-colors">
+                  <NavAnchor
+                    href={b.id === ENTERPRISE_ID ? '/enterprise' : '/#businesses'}
+                    className="hover:text-blue-400 transition-colors"
+                  >
                     {b.name}
-                  </a>
+                  </NavAnchor>
                 </li>
               ))}
             </ul>

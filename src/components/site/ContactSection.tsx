@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import type { SiteContent } from '@/lib/types';
 import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, Building, Globe, GraduationCap } from 'lucide-react';
 
@@ -15,6 +15,13 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
     businessInterest: preselectedBusiness || 'Kaizen Design & Development',
     message: ''
   });
+
+  const defaultBusiness = preselectedBusiness || 'Kaizen Design & Development';
+
+  // "Inquire Now" buttons elsewhere on the page preselect their division.
+  useEffect(() => {
+    if (preselectedBusiness) setFormData((f) => ({ ...f, businessInterest: preselectedBusiness }));
+  }, [preselectedBusiness]);
 
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
@@ -48,7 +55,7 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
         name: '',
         email: '',
         phone: '',
-        businessInterest: 'Kaizen Design & Development',
+        businessInterest: defaultBusiness,
         message: ''
       });
     }, 4000);

@@ -1,13 +1,39 @@
 import type { SiteContent } from '@/lib/types';
 import { useState, useEffect } from 'react';
+import NavAnchor from './NavAnchor';
 import { Menu, X, Phone, Mail, ChevronRight } from 'lucide-react';
+
+interface NavLink {
+  name: string;
+  href: string;
+}
+
+// The group page (/) and the Kaizen Enterprise page (/enterprise) each get their own menu.
+const NAV_LINKS: Record<'group' | 'enterprise', NavLink[]> = {
+  group: [
+    { name: 'Home', href: '#home' },
+    { name: 'About', href: '#about' },
+    { name: 'Businesses', href: '#businesses' },
+    { name: 'Why Kaizen', href: '#philosophy' },
+    { name: 'Contact', href: '#contact' },
+    { name: 'Enterprise', href: '/enterprise' },
+  ],
+  enterprise: [
+    { name: 'Kaizen JAC', href: '/' },
+    { name: 'Overview', href: '#home' },
+    { name: 'Products', href: '#products' },
+    { name: 'Trade Lines', href: '#trade' },
+    { name: 'Contact', href: '#contact' },
+  ],
+};
 
 interface NavbarProps {
   siteData: SiteContent;
   activeSection?: string;
+  variant?: 'group' | 'enterprise';
 }
 
-export default function Navbar({ siteData, activeSection }: NavbarProps) {
+export default function Navbar({ siteData, activeSection, variant = 'group' }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -19,13 +45,7 @@ export default function Navbar({ siteData, activeSection }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Businesses', href: '#businesses' },
-    { name: 'Why Kaizen', href: '#philosophy' },
-    { name: 'Contact', href: '#contact' },
-  ];
+  const navLinks = NAV_LINKS[variant];
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -37,7 +57,7 @@ export default function Navbar({ siteData, activeSection }: NavbarProps) {
         <div className="flex items-center justify-between">
           
           {/* Logo & Brand Identity (Clean KAIZEN JAC without Corporate Group subtitle) */}
-          <a href="#home" className="flex items-center gap-3 group">
+          <NavAnchor href={variant === 'enterprise' ? '/' : '#home'} className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 via-teal-500 to-amber-500 p-[2px] shadow-md group-hover:scale-105 transition-transform">
               <div className="w-full h-full bg-slate-900 rounded-[6px] flex items-center justify-center font-bold text-lg text-white tracking-wider">
                 KJ
@@ -48,22 +68,22 @@ export default function Navbar({ siteData, activeSection }: NavbarProps) {
                 KAIZEN JAC
               </span>
             </div>
-          </a>
+          </NavAnchor>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 bg-slate-800/40 p-1.5 rounded-full border border-slate-700/50">
             {navLinks.map((link) => (
-              <a
+              <NavAnchor
                 key={link.name}
                 href={link.href}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   activeSection === link.name.toLowerCase()
                     ? 'bg-blue-600 text-white shadow-md'
                     : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
                 }`}
               >
                 {link.name}
-              </a>
+              </NavAnchor>
             ))}
           </nav>
 
@@ -103,14 +123,14 @@ export default function Navbar({ siteData, activeSection }: NavbarProps) {
       {mobileMenuOpen && (
         <div className="md:hidden bg-slate-900 border-b border-slate-800 px-4 pt-4 pb-6 space-y-3 animate-fadeIn">
           {navLinks.map((link) => (
-            <a
+            <NavAnchor
               key={link.name}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
               className="block px-4 py-2.5 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800"
             >
               {link.name}
-            </a>
+            </NavAnchor>
           ))}
           <div className="pt-4 border-t border-slate-800 space-y-3">
             <a
