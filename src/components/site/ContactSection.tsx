@@ -1,27 +1,20 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { SiteContent } from '@/lib/types';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, Building, Globe, GraduationCap } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
 
 interface ContactSectionProps {
   siteData: SiteContent;
-  preselectedBusiness?: string;
+  // Name of the company this site belongs to; every inquiry from the form is recorded against it.
+  businessName: string;
 }
 
-export default function ContactSection({ siteData, preselectedBusiness }: ContactSectionProps) {
+export default function ContactSection({ siteData, businessName }: ContactSectionProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    businessInterest: preselectedBusiness || 'Kaizen Design & Development',
     message: ''
   });
-
-  const defaultBusiness = preselectedBusiness || 'Kaizen Design & Development';
-
-  // "Inquire Now" buttons elsewhere on the page preselect their division.
-  useEffect(() => {
-    if (preselectedBusiness) setFormData((f) => ({ ...f, businessInterest: preselectedBusiness }));
-  }, [preselectedBusiness]);
 
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
@@ -36,7 +29,7 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
       const res = await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, website: honeypot }),
+        body: JSON.stringify({ ...formData, businessInterest: businessName, website: honeypot }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -55,7 +48,6 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
         name: '',
         email: '',
         phone: '',
-        businessInterest: defaultBusiness,
         message: ''
       });
     }, 4000);
@@ -68,13 +60,13 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-block px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/60 text-blue-400 text-xs font-bold uppercase tracking-wider">
-            Contact Kaizen JAC
+            Contact {businessName}
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white">
-            Let's Discuss Your Project
+            Let's Discuss Your Requirements
           </h2>
           <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-            Connect directly with our corporate team or specific division specialists for joint ventures, trade inquiries, or training admissions.
+            Send us your inquiry or reach our team directly. We will get back to you promptly.
           </p>
         </div>
 
@@ -135,7 +127,7 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
             {/* Office Locations Cards */}
             <div className="space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-                Corporate Office Locations
+                Office Locations
               </h3>
 
               <div className="space-y-3">
@@ -166,7 +158,7 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
                   </div>
                   <h3 className="text-2xl font-bold text-white">Inquiry Received</h3>
                   <p className="text-sm text-slate-300 max-w-md mx-auto">
-                    Thank you for reaching out to Kaizen JAC. Our corporate team will review your inquiry and contact you promptly.
+                    Thank you for reaching out to {businessName}. Our team will review your inquiry and contact you promptly.
                   </p>
                 </div>
               ) : (
@@ -175,7 +167,7 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
                   <div className="space-y-1">
                     <h3 className="text-xl font-bold text-white">Send an Enquiry</h3>
                     <p className="text-xs text-slate-400">
-                      Fill out the essential details below and select your division of interest.
+                      Fill out the essential details below and we will respond to your inquiry.
                     </p>
                   </div>
 
@@ -210,8 +202,8 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
                     </div>
                   </div>
 
-                  {/* Phone & Business Interest Row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Phone Row */}
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-slate-300">
                         Phone Number <span className="text-slate-500">(Optional)</span>
@@ -223,22 +215,6 @@ export default function ContactSection({ siteData, preselectedBusiness }: Contac
                         placeholder="01755520178"
                         className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-300">
-                        Business Division of Interest <span className="text-blue-400">*</span>
-                      </label>
-                      <select
-                        value={formData.businessInterest}
-                        onChange={(e) => setFormData({ ...formData, businessInterest: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
-                      >
-                        <option value="Kaizen Design & Development">Kaizen Design & Development</option>
-                        <option value="Kaizen Enterprise">Kaizen Enterprise</option>
-                        <option value="Kaizen Training Center">Kaizen Training Center</option>
-                        <option value="General Kaizen JAC Inquiry">General Kaizen JAC Inquiry</option>
-                      </select>
                     </div>
                   </div>
 

@@ -4,7 +4,6 @@ export interface SiteMeta {
   title: string;
   description: string;
   keywords: string;
-  siteUrl: string;
   contactEmail: string;
   contactPhone: string;
 }
@@ -17,6 +16,8 @@ export interface Stat {
 export interface Office {
   title: string;
   address: string;
+  // Id of the business this office belongs to; used to pick each site's default offices.
+  business?: string;
 }
 
 export interface Umbrella {

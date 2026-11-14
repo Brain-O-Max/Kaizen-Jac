@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { ExternalLink, FileText, Image as ImageIcon, Inbox, LogOut } from 'lucide-react';
 import { listInquiries } from '@/lib/content';
+import { SITES, currentSiteId } from '@/lib/site';
 
 export type AdminSection = 'content' | 'media' | 'inquiries';
 
 export default async function AdminNav({ active }: { active: AdminSection }) {
+  const site = SITES[currentSiteId()];
   const newCount = (await listInquiries()).filter((q) => q.status === 'new').length;
   const linkClass = (key: AdminSection) =>
     `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
@@ -15,7 +17,7 @@ export default async function AdminNav({ active }: { active: AdminSection }) {
     <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800">
       <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-bold tracking-tight">KAIZEN JAC <span className="text-amber-400">Admin</span></span>
+          <span className="font-bold tracking-tight uppercase">{site.name} <span className="text-amber-400">Admin</span></span>
           <nav className="flex items-center gap-1">
             <Link href="/admin" className={linkClass('content')}>
               <FileText className="w-4 h-4" /> Content

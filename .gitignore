@@ -41,3 +41,6 @@ build
 *.pem
 *.tsbuildinfo
 .vercel
+
+# Per-site dev build folders (npm run dev:design etc.)
+.next-*

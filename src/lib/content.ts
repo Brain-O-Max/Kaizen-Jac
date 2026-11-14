@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { defaultContent } from './defaults';
+import { SITES, currentSiteId, type SiteId } from './site';
 import {
   INQUIRY_STATUSES,
   type Inquiry,
@@ -15,7 +16,9 @@ export { defaultContent, INQUIRY_STATUSES };
 
 // Saved content, uploads and inquiries. In production set KAIZEN_STORAGE_DIR to an absolute path
 // OUTSIDE the deployed app folder (hosts like Hostinger replace that folder on every deploy).
-const storageDir = () => process.env.KAIZEN_STORAGE_DIR || path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'storage');
+// Every site keeps its own storage; locally that is ./storage/<site>.
+const storageDir = () =>
+  process.env.KAIZEN_STORAGE_DIR || path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'storage', currentSiteId());
 const contentFile = () => path.join(storageDir(), 'content.json');
 const uploadsDir = () => path.join(storageDir(), 'uploads');
 // The original photos ship with the code and are served when no upload of that name exists.
@@ -42,11 +45,30 @@ const EXT_TO_MIME: Record<string, string> = Object.fromEntries(
 EXT_TO_MIME['.jpeg'] = 'image/jpeg';
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
+// Starting content for one site: only its own business and offices, with SEO text derived from the business.
+export function defaultContentFor(site: SiteId): SiteContent {
+  const config = SITES[site];
+  const content = structuredClone(defaultContent);
+  content.businesses = content.businesses.filter((b) => b.id === config.businessId);
+  content.umbrella.offices = content.umbrella.offices.filter((o) => o.business === config.businessId);
+  const business = content.businesses[0];
+  if (business) {
+    content.meta = {
+      ...content.meta,
+      title: `${business.name} — ${business.shortTitle} | ${content.umbrella.name}`,
+      description: business.summary,
+      keywords: config.keywords,
+    };
+  }
+  return content;
+}
+
+// Content of the site this deployment serves: what the admin saved, or the defaults until then.
 export async function getContent(): Promise<SiteContent> {
   try {
     return JSON.parse(await fs.readFile(contentFile(), 'utf8')) as SiteContent;
   } catch (err) {
-    if (isNotFound(err)) return structuredClone(defaultContent);
+    if (isNotFound(err)) return defaultContentFor(currentSiteId());
     throw err;
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { Check, Download, Loader2, Plus, Save, Trash2 } from 'lucide-react';
-import { ENTERPRISE_ID, type Office, type ProductCategory, type Project, type Service, type SiteContent, type Stat } from '@/lib/types';
+import { ENTERPRISE_ID, type Office, type ProductCategory, type Project, type Service, type SiteContent } from '@/lib/types';
 import ImageField from './ImageField';
 import ProductCatalogEditor from './ProductCatalogEditor';
 import TextField from './TextField';
@@ -239,22 +239,9 @@ export default function ContentEditor({ initialContent }: { initialContent: Site
             <TextField label="Page title" {...field(['meta', 'title'])} />
             <TextField label="Meta description" multiline {...field(['meta', 'description'])} />
             <TextField label="Keywords (comma separated)" {...field(['meta', 'keywords'])} />
-            <TextField label="Site URL" {...field(['meta', 'siteUrl'])} />
           </Section>
-          <Section title="Group identity">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <TextField label="Name" {...field(['umbrella', 'name'])} />
-              <TextField label="Tagline" {...field(['umbrella', 'tagline'])} />
-            </div>
-            <TextField label="Philosophy" multiline {...field(['umbrella', 'philosophy'])} />
-            <TextField label="Introduction" multiline {...field(['umbrella', 'intro'])} />
-            <ObjectList
-              label="Headline stats"
-              fields={['label', 'value']}
-              newItem={() => ({ label: '', value: '' })}
-              items={content.umbrella.stats}
-              onChange={field<Stat[]>(['umbrella', 'stats']).onChange}
-            />
+          <Section title="Group name">
+            <TextField label="Name of the group these companies belong to (shown in the footer)" {...field(['umbrella', 'name'])} />
           </Section>
         </div>
       )}

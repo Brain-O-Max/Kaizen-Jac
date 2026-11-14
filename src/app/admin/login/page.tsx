@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
+import { SITES, currentSiteId } from '@/lib/site';
 import { SESSION_COOKIE, SESSION_MAX_AGE, checkPassword, createSessionToken } from '@/lib/auth';
 
 // Only redirect back into the admin area after login.
@@ -31,6 +32,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const { error, next } = await searchParams;
+  const site = SITES[currentSiteId()];
   const configured = Boolean(process.env.ADMIN_PASSWORD && process.env.ADMIN_SESSION_SECRET);
 
   return (
@@ -38,10 +40,10 @@ export default async function LoginPage({
       <form action={login} className="w-full max-w-sm card">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 via-teal-500 to-amber-500 p-[2px]">
-            <div className="w-full h-full bg-slate-900 rounded-[6px] flex items-center justify-center font-bold text-white">KJ</div>
+            <div className="w-full h-full bg-slate-900 rounded-[6px] flex items-center justify-center font-bold text-white">{site.initials}</div>
           </div>
           <div>
-            <h1 className="text-lg font-bold">Kaizen JAC Admin</h1>
+            <h1 className="text-lg font-bold">{site.name} Admin</h1>
             <p className="text-xs text-slate-400">Sign in to manage website content</p>
           </div>
         </div>

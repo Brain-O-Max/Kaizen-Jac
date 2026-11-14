@@ -78,7 +78,7 @@ export default function InquiryList({ initialInquiries }: { initialInquiries: In
       <ul className="space-y-2">
         {visible.map((q) => {
           const open = openId === q.id;
-          const replySubject = encodeURIComponent(`Re: Your inquiry to ${q.businessInterest || 'Kaizen JAC'}`);
+          const replySubject = encodeURIComponent(`Re: Your inquiry to ${q.businessInterest || 'us'}`);
           return (
             <li key={q.id} className={`rounded-xl border bg-slate-900 ${q.status === 'new' ? 'border-blue-800' : 'border-slate-800'}`}>
               <button onClick={() => toggle(q)} className="w-full text-left p-4 flex flex-wrap items-center gap-x-4 gap-y-1">

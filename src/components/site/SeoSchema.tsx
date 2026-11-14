@@ -1,51 +1,37 @@
-import type { SiteContent } from '@/lib/types';
+import type { Business, SiteContent } from '@/lib/types';
+import type { SiteConfig } from '@/lib/site';
+
+interface SeoSchemaProps {
+  siteData: SiteContent;
+  business: Business;
+  site: SiteConfig;
+  siteUrl: string;
+}
+
 // Renders JSON-LD structured data on the server so crawlers see it without running JS.
-export default function SeoSchema({ siteData }: { siteData: SiteContent }) {
+export default function SeoSchema({ siteData, business, site, siteUrl }: SeoSchemaProps) {
+  const office = siteData.umbrella.offices[0];
+
   const schemaData = {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": `${siteData.meta.siteUrl}/#organization`,
-        "name": siteData.umbrella.name,
-        "url": siteData.meta.siteUrl,
-        "email": siteData.contacts.primaryEmail,
-        "telephone": siteData.contacts.phones[0],
-        "description": siteData.umbrella.intro,
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Dhaka",
-          "addressCountry": "BD"
-        },
-        "subOrganization": siteData.businesses.map(b => ({
-          "@type": "Organization",
-          "name": b.name,
-          "description": b.summary
-        }))
-      },
-      {
-        "@type": "RealEstateAgent",
-        "name": "Kaizen Design & Development",
-        "telephone": siteData.contacts.phones[0],
-        "email": siteData.contacts.primaryEmail,
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "House #101, Road 04, Block #D, Mohanogor Project, Rampura",
-          "addressLocality": "Dhaka",
-          "addressCountry": "BD"
-        }
-      },
-      {
-        "@type": "EducationalOrganization",
-        "name": "Kaizen Training Center",
-        "description": "Technical and Vocational Education and Training Institute",
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Dhaka",
-          "addressCountry": "BD"
-        }
-      }
-    ]
+    "@type": site.schemaType,
+    "@id": `${siteUrl}/#organization`,
+    "name": business.name,
+    "url": siteUrl,
+    "email": siteData.contacts.primaryEmail,
+    "telephone": siteData.contacts.phones[0],
+    "description": business.summary,
+    "image": business.image ? new URL(business.image, siteUrl).toString() : undefined,
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": office?.address,
+      "addressLocality": "Dhaka",
+      "addressCountry": "BD"
+    },
+    "parentOrganization": {
+      "@type": "Organization",
+      "name": siteData.umbrella.name
+    }
   };
 
   return (

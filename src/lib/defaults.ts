@@ -6,7 +6,6 @@ export const defaultContent: SiteContent = {
     title: "Kaizen JAC — Minimal Corporate Ecosystem | Design, Enterprise & Training",
     description: "Kaizen JAC is a modern corporate umbrella group in Bangladesh combining luxury real estate development, multi-commodity import-export, and high-impact vocational technical training.",
     keywords: "Kaizen JAC, Kaizen Design and Development, Kaizen Enterprise, Kaizen Training Center, Real Estate Dhaka, Import Export Bangladesh, TVET Training Dhaka",
-    siteUrl: "https://kaizenjac.com",
     contactEmail: "Kaizen.jac@gmail.com",
     contactPhone: "01755520178"
   },
@@ -24,19 +23,23 @@ export const defaultContent: SiteContent = {
     offices: [
       {
         title: "Kaizen Design & Development (HQ)",
-        address: "House #101, Road 04, Block #D, Mohanogor Project, Rampura, Dhaka"
+        address: "House #101, Road 04, Block #D, Mohanogor Project, Rampura, Dhaka",
+        business: "design-dev"
       },
       {
         title: "Kaizen Design & Development (Branch)",
-        address: "House #121, Road #1, Block #F, Banani, Dhaka 1219, Bangladesh"
+        address: "House #121, Road #1, Block #F, Banani, Dhaka 1219, Bangladesh",
+        business: "design-dev"
       },
       {
         title: "Kaizen Enterprise (Corporate Office)",
-        address: "Falguni Apartment, House #326/347, Road 14, Block #A, Bashundhara R/A, Dhaka"
+        address: "Falguni Apartment, House #326/347, Road 14, Block #A, Bashundhara R/A, Dhaka",
+        business: "enterprise"
       },
       {
         title: "Kaizen Training Center",
-        address: "Dhaka, Bangladesh"
+        address: "Dhaka, Bangladesh",
+        business: "training-center"
       }
     ]
   },
