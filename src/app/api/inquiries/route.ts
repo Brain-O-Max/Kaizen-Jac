@@ -1,4 +1,5 @@
 import { errorMessage, saveInquiry } from '@/lib/content';
+import { isReadOnlyDeployment } from '@/lib/site';
 
 // Basic per-IP rate limit (in memory, per server process) to slow down form spam.
 const WINDOW_MS = 10 * 60 * 1000;
@@ -14,6 +15,14 @@ function rateLimited(ip: string): boolean {
 }
 
 export async function POST(request: Request) {
+  // Nothing could be saved on a read-only preview, so say so instead of failing with a file-system error.
+  if (isReadOnlyDeployment()) {
+    return Response.json(
+      { error: 'The contact form is switched off on this preview site. Please contact us by phone or email instead.' },
+      { status: 503 }
+    );
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();

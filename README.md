@@ -71,3 +71,22 @@ Create **three** Node.js apps from this same GitHub repo (branch `main`), one pe
 6. Check that storage survives a deploy: upload an image in the admin, redeploy, and confirm it still shows.
 
 Pushing to `main` updates all three sites (redeploy each app from hPanel unless auto-deploy is on).
+
+## Free preview on Vercel (read-only)
+
+For showing the sites to the client before the real hosting is ready. Vercel's free plan has no permanent file storage, so
+a Vercel deployment runs in **read-only mode** (detected automatically through the `VERCEL` variable, or force it anywhere
+with `DEMO_READ_ONLY=1`):
+
+- Works: all public pages with the default content, images, SEO text.
+- Switched off: the admin panel (`/admin` shows a notice), uploads, and the contact form (visitors see a message to call or email instead).
+
+The free (Hobby) plan is for non-commercial use, so use it for previews only; the live sites belong on Hostinger.
+
+Create **three** Vercel projects from this repo (Vercel dashboard → Add New → Project → import `Kaizen-Jac`), one per site:
+
+1. Framework is detected as Next.js; leave build settings as they are.
+2. Add the environment variable `SITE` = `enterprise`, `design` or `training` (a different one per project).
+3. Deploy. Each project gets an address like `https://<project-name>.vercel.app`.
+4. Once all three exist, add `SITE_URL_ENTERPRISE`, `SITE_URL_DESIGN` and `SITE_URL_TRAINING` (the three addresses, same values in every project) and redeploy,
+   so the footer links point to the other two sites. No admin password or storage settings are needed.
