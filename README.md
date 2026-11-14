@@ -21,7 +21,6 @@ src/lib/defaults.ts      Starting content for all companies; each site only uses
 src/lib/                 Content types, storage, uploads, inquiries, admin auth
 src/proxy.ts             Requires an admin session for /admin and /api/admin
 seed-uploads/            Original photos, served as a fallback for /uploads/<name>
-_legacy-vite/            The previous Vite site, kept for reference — safe to delete
 ```
 
 ## Local development
