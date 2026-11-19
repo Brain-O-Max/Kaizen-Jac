@@ -1,6 +1,8 @@
 # Kaizen JAC
 
 Three company websites, each with its own admin panel, built from one Next.js 16 codebase (TypeScript).
+They run on ordinary **shared hosting (cPanel) without Node.js**. The pages are static HTML, and a small PHP
+backend saves content, uploads and contact-form inquiries.
 
 | Site | `SITE` value | Where it runs | Local port |
 | --- | --- | --- | --- |
@@ -8,84 +10,147 @@ Three company websites, each with its own admin panel, built from one Next.js 16
 | Kaizen Design & Development | `design` | subdomain, e.g. `design.kaizenenterprise.com` | 3001 |
 | Kaizen Training Center | `training` | subdomain, e.g. `training.kaizenenterprise.com` | 3002 |
 
-The same code is deployed three times. The `SITE` environment variable decides which website a deployment serves:
-its home page (`/`), its admin panel (`/admin`), its colours, SEO text and default content.
-Each deployment has its own admin password, saved content, uploads and inquiries.
+The same code is built three times. `SITE` decides which website a build contains: its home page (`/`), its admin
+panel (`/admin/`), its colours, SEO text and default content. Each site has its own admin password, saved content,
+uploads and inquiries.
 
 ```
-src/app/                 Routes: the site at /, admin under /admin, APIs under /api
+src/app/                 Pages: the site at /, admin under /admin (all static)
 src/components/site/     Website sections (hero, product catalog, services, contact, footer)
-src/components/admin/    Admin UI (content editor, media library, inquiries)
+src/components/admin/    Admin UI (sign-in, content editor, media library, inquiries)
 src/lib/site.ts          The three sites (names, colours, URLs) and the SITE setting
 src/lib/defaults.ts      Starting content for all companies; each site only uses its own
-src/lib/                 Content types, storage, uploads, inquiries, admin auth
-src/proxy.ts             Requires an admin session for /admin and /api/admin
-seed-uploads/            Original photos, served as a fallback for /uploads/<name>
+src/lib/api.ts           Browser calls to the PHP backend
+php/api/                 PHP backend: content.php, session.php, uploads.php, inquiries.php
+php/dev-router.php       Local PHP server for all three sites (npm run php)
+scripts/package.mjs      Builds the upload package for a site (npm run package:<site>)
+seed-uploads/            Original photos, shipped in every package's uploads/ folder
+```
+
+## How it works
+
+- **Public pages** are built into static HTML with the content available at build time, so search engines see the
+  full text. In the browser the page then loads the latest saved content from `/api/content.php`, so edits made in
+  the online admin show immediately, without rebuilding.
+  The `<title>`, description and structured data in the HTML only change when you rebuild and upload again.
+- **Admin** (`/admin/`) pages are static too. Sign-in, saving and uploads go to the PHP scripts, which check the
+  session on every request.
+- **Contact form** posts to `/api/inquiries.php`. Each inquiry is saved (listed in the admin under Inquiries) and
+  emailed with PHP `mail()` to `INQUIRY_EMAIL`, or to the contact email saved in the admin. Spam protection: hidden
+  honeypot field and at most 5 submissions per IP per 10 minutes.
+
+On the server, each site's folder looks like this:
+
+```
+public_html/            (or the subdomain's folder)
+  index.html, admin/, _next/, 404.html ...   static site
+  api/                  PHP backend; api/config.php holds the site id, password hash and inquiry email
+  uploads/              photos and PDFs (served directly; scripts blocked by uploads/.htaccess)
+  _data/                content.json, inquiries/, rate limits (web access blocked by _data/.htaccess)
+  .htaccess             HTTPS redirect, 404 page, security headers
 ```
 
 ## Local development
 
+You need Node.js 20.9+ and PHP 7.4+ on your PATH (for example from [windows.php.net](https://windows.php.net/download/):
+unzip it and add the folder to PATH).
+
 ```bash
 npm install
-cp .env.example .env.local   # then set ADMIN_PASSWORD and ADMIN_SESSION_SECRET
-npm run dev:all              # all three sites at once (ports 3000, 3001, 3002)
-npm run dev:enterprise       # or just one: dev:enterprise / dev:design / dev:training
-npm run typecheck            # strict TypeScript check (also runs during `npm run build`)
+cp .env.example .env.local   # then set ADMIN_PASSWORD
+npm run dev:all              # PHP backend (port 8080) + all three sites (ports 3000, 3001, 3002)
+npm run php                  # or start them separately: the PHP backend...
+npm run dev:enterprise       # ...and one site: dev:enterprise / dev:design / dev:training
+npm run typecheck
 ```
 
-`npm run dev` runs a single site (Enterprise unless `SITE` is set). Locally each site stores its data in `./storage/<site>`.
+The Next.js dev server forwards `/api/*` and `/uploads/*` to `npm run php`. Locally each site keeps its data in
+`./storage/<site>` (`content.json`, `uploads/`, `inquiries/`). Emails are not sent locally unless PHP has mail
+configured.
 
-## Environment variables
+## Deploying to shared hosting (cPanel)
 
-| Variable | Required | Meaning |
-| --- | --- | --- |
-| `SITE` | yes (production) | `enterprise`, `design` or `training`. A wrong value is an error, so a typo can't show the wrong company. |
-| `ADMIN_PASSWORD` | yes | Password for `/admin` of this deployment |
-| `ADMIN_SESSION_SECRET` | yes | Long random string (16+ characters) that signs the admin session cookie |
-| `KAIZEN_STORAGE_DIR` | production | Absolute path **outside** the deployed app folder for this site's `content.json`, `uploads/`, `inquiries/` |
-| `SITE_URL_ENTERPRISE`, `SITE_URL_DESIGN`, `SITE_URL_TRAINING` | production | Public address of each site, e.g. `https://kaizenenterprise.com`. Used for footer links to the other companies and for SEO. Set all three on every deployment. |
+### 1. Build the upload packages (on your PC)
 
-## How content is stored
+Create `.env.production.local` (copy `.env.example`) with the live settings:
 
-Everything the admin changes lives in that site's storage folder:
+| Variable | Meaning |
+| --- | --- |
+| `ADMIN_PASSWORD_ENTERPRISE`, `ADMIN_PASSWORD_DESIGN`, `ADMIN_PASSWORD_TRAINING` | Admin password per site (or one `ADMIN_PASSWORD` for all). Only a salted hash goes into the package. |
+| `SITE_URL_ENTERPRISE`, `SITE_URL_DESIGN`, `SITE_URL_TRAINING` | Public address of each site, for the footer links and SEO. |
+| `INQUIRY_EMAIL` (or `INQUIRY_EMAIL_<SITE>`) | Optional. Where contact-form inquiries are emailed. Default: the contact email saved in the admin. |
 
-- `content.json` — site text, contacts, offices, services, projects and (Enterprise) the product catalog. Until it exists the defaults from `src/lib/defaults.ts` are used.
-- `uploads/` — images and PDFs uploaded in the admin (max 10 MB each), served at `/uploads/<file>`.
-- `inquiries/` — one JSON file per contact-form submission. The form has a hidden honeypot field and a per-IP limit of 5 submissions per 10 minutes.
+Then run:
 
-## Deploying to Hostinger (Business or Cloud web hosting)
+```bash
+npm run package:all          # or package:enterprise / package:design / package:training
+```
 
-Create **three** Node.js apps from this same GitHub repo (branch `main`), one per site, then repeat these steps for each:
+This creates `deploy/<site>/` and `deploy/<site>.zip` for each site.
 
-1. hPanel → **Websites → Add website → Node.js Apps**, connect GitHub, pick this repo.
-2. Attach the domain: the main domain for Enterprise, a subdomain for the other two.
-3. Framework preset **Next.js**, Node.js **22**, package manager **npm**, build command `npm run build`.
-4. Environment variables:
-   - `SITE` = `enterprise`, `design` or `training`
-   - `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` (use a different password for each site)
-   - `KAIZEN_STORAGE_DIR` = a folder **outside** the build folder, different for each site, e.g. `/home/<hostinger-user>/kaizen-storage-design`.
-     Hostinger replaces the build folder on every deploy, so storage inside it would be lost.
-   - `SITE_URL_ENTERPRISE`, `SITE_URL_DESIGN`, `SITE_URL_TRAINING` (same values on all three apps)
-5. Deploy, then open `https://<domain>/admin` and sign in.
-6. Check that storage survives a deploy: upload an image in the admin, redeploy, and confirm it still shows.
+### 2. Upload
 
-Pushing to `main` updates all three sites (redeploy each app from hPanel unless auto-deploy is on).
+For each site, in cPanel:
 
-## Free preview on Vercel (read-only)
+1. Create the subdomains (`design.`, `training.`) under **Domains**. Note each one's document root folder.
+2. Open **File Manager** and go to the site's folder (`public_html` for the main domain). Upload `deploy/<site>.zip`,
+   then right-click it, choose **Extract**, and delete the zip. Turn on **Settings → Show Hidden Files** to check that
+   the `.htaccess` files are there.
+3. Under **Select PHP Version** (or MultiPHP Manager), use PHP 7.4 or newer (8.2+ recommended). Make sure the
+   `fileinfo` extension is on.
+4. Issue SSL certificates for all domains (**SSL/TLS Status → Run AutoSSL**). The root `.htaccess` redirects
+   to HTTPS.
+5. Open `https://<domain>/admin/`, sign in, and save once. Upload a test image, then send a test message through the
+   contact form and check that the email arrives.
 
-For showing the sites to the client before the real hosting is ready. Vercel's free plan has no permanent file storage, so
-a Vercel deployment runs in **read-only mode** (detected automatically through the `VERCEL` variable, or force it anywhere
-with `DEMO_READ_ONLY=1`):
+### XeonBD (DirectAdmin): kaizen-jac.org
 
-- Works: all public pages with the default content, images, SEO text.
-- Switched off: the admin panel (`/admin` shows a notice), uploads, and the contact form (visitors see a message to call or email instead).
+The live sites run on XeonBD "DA Plus" hosting with DirectAdmin. `.env.production.local` on the build PC holds
+the three admin passwords and URLs, and `npm run package:all` builds the zips.
 
-The free (Hobby) plan is for non-commercial use, so use it for previews only; the live sites belong on Hostinger.
+| Site | Address | Folder in File Manager | Zip |
+| --- | --- | --- | --- |
+| Kaizen Enterprise | https://kaizen-jac.org | `domains/kaizen-jac.org/public_html` | `deploy/enterprise.zip` |
+| Kaizen Design & Development | https://design.kaizen-jac.org | `domains/kaizen-jac.org/public_html/design` | `deploy/design.zip` |
+| Kaizen Training Center | https://training.kaizen-jac.org | `domains/kaizen-jac.org/public_html/training` | `deploy/training.zip` |
 
-Create **three** Vercel projects from this repo (Vercel dashboard → Add New → Project → import `Kaizen-Jac`), one per site:
+DirectAdmin keeps a subdomain's files in a folder of the main site. The main site's `.htaccess` sends
+`kaizen-jac.org/design/…` to `design.kaizen-jac.org`, so each site only has one address.
 
-1. Framework is detected as Next.js; leave build settings as they are.
-2. Add the environment variable `SITE` = `enterprise`, `design` or `training` (a different one per project).
-3. Deploy. Each project gets an address like `https://<project-name>.vercel.app`.
-4. Once all three exist, add `SITE_URL_ENTERPRISE`, `SITE_URL_DESIGN` and `SITE_URL_TRAINING` (the three addresses, same values in every project) and redeploy,
-   so the footer links point to the other two sites. No admin password or storage settings are needed.
+1. **Domain and DNS.** `kaizen-jac.org` must be the hosting account's domain, with its nameservers pointing to
+   XeonBD's (from the welcome email). DNS changes can take a few hours to spread.
+2. **Subdomains.** *Account Manager → Subdomain Management*: add `design` and `training`.
+3. **HTTPS folder.** *Account Manager → Domain Setup → kaizen-jac.org*: set **Private HTML** to "use a symbolic link
+   from private_html to public_html". DirectAdmin serves HTTPS from `private_html`; without the link, HTTPS shows an
+   empty site.
+4. **SSL.** *Security → SSL Certificates*: get a free Let's Encrypt certificate covering `kaizen-jac.org`,
+   `www.kaizen-jac.org`, `design.kaizen-jac.org` and `training.kaizen-jac.org`. Until it exists, comment out the
+   three "Redirect to HTTPS" lines in each `.htaccess`.
+5. **PHP.** *Extra Features → Select PHP Version* (or *Domain Setup → PHP version*): PHP 8.2 or 8.3, with the
+   `fileinfo` and `mbstring` extensions ticked.
+6. **Upload.** *System Info & Files → File Manager*:
+   - Open `domains/kaizen-jac.org/public_html`, delete DirectAdmin's default `index.html` and `logo.png`, upload
+     `enterprise.zip`, choose **Extract** (into this same folder), then delete the zip.
+   - Open `public_html/design`, upload `design.zip`, extract, and delete the zip. Do the same in `public_html/training`
+     with `training.zip`.
+7. **Email.** *E-Mail Manager → E-Mail Accounts*: create `noreply@kaizen-jac.org` (the contact form sends from this
+   address). Check that DKIM is on for the domain (*Domain Setup → DKIM* / *E-Mail Manager*), or Gmail may treat
+   the messages as spam.
+8. **Test** each site: open `/admin/`, sign in, save once, upload a test image, send a contact-form message and
+   check that the email arrives. Also check that `https://kaizen-jac.org/_data/` and
+   `https://kaizen-jac.org/api/config.php` are blocked (403 or 404).
+
+### Updating the code later
+
+Run `npm run package:<site>` again and upload/extract over the old files. Saved content, uploads and inquiries
+are kept: the package never contains `_data/content.json`, and uploaded files have unique names. To change an admin
+password, set the new one in `.env.production.local`, re-package, and upload `api/config.php` again.
+
+### Notes
+
+- **Upload size:** `api/.user.ini` raises PHP's upload limit to allow 10 MB files. If uploads above 2 MB fail, set
+  `upload_max_filesize` and `post_max_size` in cPanel's **MultiPHP INI Editor** instead.
+- **Emails going to spam:** create the `noreply@<domain>` mailbox (or check that SPF/DKIM are on under
+  **Email Deliverability**). The From address is `noreply@<domain>`, and Reply-To is the visitor.
+- **Backups:** everything editable lives in `_data/` and `uploads/`. Include them in your backups.
+- A static-only host such as Vercel or Netlify can show the public pages, but the admin and contact form need PHP.

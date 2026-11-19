@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Archive, Mail, MailOpen, Phone, Reply, Trash2 } from 'lucide-react';
+import { API, apiFetch } from '@/lib/api';
 import type { Inquiry, InquiryStatus } from '@/lib/types';
+import { useAdmin } from './AdminShell';
 
 const FILTERS: { key: string; label: string; match: (status: InquiryStatus) => boolean }[] = [
   { key: 'inbox', label: 'Inbox', match: (s) => s !== 'archived' },
@@ -27,27 +28,29 @@ export default function InquiryList({ initialInquiries }: { initialInquiries: In
   const [filter, setFilter] = useState('inbox');
   const [openId, setOpenId] = useState<string | null>(null);
   const [error, setError] = useState('');
-  const router = useRouter();
+  const { refreshNewCount } = useAdmin();
+  const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
   const setStatus = async (id: string, status: InquiryStatus) => {
     setError('');
-    const res = await fetch('/api/admin/inquiries', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status }),
-    });
-    const data = await res.json();
-    if (!res.ok) return setError(data.error || 'Update failed');
-    setInquiries((list) => list.map((q) => (q.id === id ? data : q)));
-    router.refresh(); // updates the unread badge in the nav
+    try {
+      const updated = await apiFetch<Inquiry>(API.inquiries, { method: 'PATCH', body: JSON.stringify({ id, status }) });
+      setInquiries((list) => list.map((q) => (q.id === id ? updated : q)));
+      refreshNewCount(); // updates the unread badge in the nav
+    } catch (err) {
+      setError(errorText(err));
+    }
   };
 
   const remove = async (id: string) => {
     if (!confirm('Delete this inquiry permanently?')) return;
-    const res = await fetch(`/api/admin/inquiries?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-    if (!res.ok) return setError((await res.json()).error || 'Delete failed');
-    setInquiries((list) => list.filter((q) => q.id !== id));
-    router.refresh();
+    try {
+      await apiFetch(`${API.inquiries}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      setInquiries((list) => list.filter((q) => q.id !== id));
+      refreshNewCount();
+    } catch (err) {
+      setError(errorText(err));
+    }
   };
 
   const toggle = (q: Inquiry) => {

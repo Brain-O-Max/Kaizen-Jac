@@ -1,17 +1,14 @@
-import { getContent } from '@/lib/content';
-import AdminNav from '@/components/admin/AdminNav';
-import ContentEditor from '@/components/admin/ContentEditor';
+import { SITES, currentSiteId } from '@/lib/site';
+import AdminShell from '@/components/admin/AdminShell';
+import { ContentPanel } from '@/components/admin/AdminPanels';
 
-export const dynamic = 'force-dynamic';
-
-export default async function ContentPage() {
-  const content = await getContent();
+export default function ContentPage() {
+  const site = SITES[currentSiteId()];
   return (
-    <>
-      <AdminNav active="content" />
+    <AdminShell siteName={site.name} active="content">
       <main className="max-w-6xl mx-auto px-4 py-6">
-        <ContentEditor initialContent={content} />
+        <ContentPanel siteId={site.id} />
       </main>
-    </>
+    </AdminShell>
   );
 }

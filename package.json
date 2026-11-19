@@ -7,9 +7,13 @@
     "dev:enterprise": "cross-env SITE=enterprise NEXT_DIST_DIR=.next-enterprise next dev --port 3000",
     "dev:design": "cross-env SITE=design NEXT_DIST_DIR=.next-design next dev --port 3001",
     "dev:training": "cross-env SITE=training NEXT_DIST_DIR=.next-training next dev --port 3002",
-    "dev:all": "concurrently -n enterprise,design,training -c teal,blue,yellow \"npm:dev:enterprise\" \"npm:dev:design\" \"npm:dev:training\"",
+    "php": "php -S 127.0.0.1:8080 php/dev-router.php",
+    "dev:all": "concurrently -n php,enterprise,design,training -c gray,teal,blue,yellow \"npm:php\" \"npm:dev:enterprise\" \"npm:dev:design\" \"npm:dev:training\"",
     "build": "next build",
-    "start": "next start",
+    "package:enterprise": "node scripts/package.mjs enterprise",
+    "package:design": "node scripts/package.mjs design",
+    "package:training": "node scripts/package.mjs training",
+    "package:all": "node scripts/package.mjs all",
     "typecheck": "tsc --noEmit"
   },
   "engines": {
@@ -17,7 +21,7 @@
   },
   "dependencies": {
     "lucide-react": "^1.41.0",
-    "next": "^16.4.3",
+    "next": "^16.4.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

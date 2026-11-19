@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { SiteContent } from '@/lib/types';
+import { API, ApiError, apiFetch } from '@/lib/api';
 import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
 
 interface ContactSectionProps {
@@ -26,17 +27,13 @@ export default function ContactSection({ siteData, businessName }: ContactSectio
     setSending(true);
     setError('');
     try {
-      const res = await fetch('/api/inquiries', {
+      await apiFetch(API.inquiries, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, businessInterest: businessName, website: honeypot }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Something went wrong. Please try again.');
-      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      const message = err instanceof ApiError && err.status !== 404 && err.status < 500 ? err.message : '';
+      setError(message || 'Your message could not be sent right now. Please call or email us instead.');
       return;
     } finally {
       setSending(false);
