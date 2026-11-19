@@ -103,6 +103,43 @@ For each site, in cPanel:
 5. Open `https://<domain>/admin/`, sign in, and save once. Upload a test image, then send a test message through the
    contact form and check that the email arrives.
 
+### XeonBD (DirectAdmin): kaizen-jac.org
+
+The live sites run on XeonBD "DA Plus" hosting with DirectAdmin. `.env.production.local` on the build PC holds
+the three admin passwords and URLs, and `npm run package:all` builds the zips.
+
+| Site | Address | Folder in File Manager | Zip |
+| --- | --- | --- | --- |
+| Kaizen Enterprise | https://kaizen-jac.org | `domains/kaizen-jac.org/public_html` | `deploy/enterprise.zip` |
+| Kaizen Design & Development | https://design.kaizen-jac.org | `domains/kaizen-jac.org/public_html/design` | `deploy/design.zip` |
+| Kaizen Training Center | https://training.kaizen-jac.org | `domains/kaizen-jac.org/public_html/training` | `deploy/training.zip` |
+
+DirectAdmin keeps a subdomain's files in a folder of the main site. The main site's `.htaccess` sends
+`kaizen-jac.org/design/…` to `design.kaizen-jac.org`, so each site only has one address.
+
+1. **Domain and DNS.** `kaizen-jac.org` must be the hosting account's domain, with its nameservers pointing to
+   XeonBD's (from the welcome email). DNS changes can take a few hours to spread.
+2. **Subdomains.** *Account Manager → Subdomain Management*: add `design` and `training`.
+3. **HTTPS folder.** *Account Manager → Domain Setup → kaizen-jac.org*: set **Private HTML** to "use a symbolic link
+   from private_html to public_html". DirectAdmin serves HTTPS from `private_html`; without the link, HTTPS shows an
+   empty site.
+4. **SSL.** *Security → SSL Certificates*: get a free Let's Encrypt certificate covering `kaizen-jac.org`,
+   `www.kaizen-jac.org`, `design.kaizen-jac.org` and `training.kaizen-jac.org`. Until it exists, comment out the
+   three "Redirect to HTTPS" lines in each `.htaccess`.
+5. **PHP.** *Extra Features → Select PHP Version* (or *Domain Setup → PHP version*): PHP 8.2 or 8.3, with the
+   `fileinfo` and `mbstring` extensions ticked.
+6. **Upload.** *System Info & Files → File Manager*:
+   - Open `domains/kaizen-jac.org/public_html`, delete DirectAdmin's default `index.html` and `logo.png`, upload
+     `enterprise.zip`, choose **Extract** (into this same folder), then delete the zip.
+   - Open `public_html/design`, upload `design.zip`, extract, and delete the zip. Do the same in `public_html/training`
+     with `training.zip`.
+7. **Email.** *E-Mail Manager → E-Mail Accounts*: create `noreply@kaizen-jac.org` (the contact form sends from this
+   address). Check that DKIM is on for the domain (*Domain Setup → DKIM* / *E-Mail Manager*), or Gmail may treat
+   the messages as spam.
+8. **Test** each site: open `/admin/`, sign in, save once, upload a test image, send a contact-form message and
+   check that the email arrives. Also check that `https://kaizen-jac.org/_data/` and
+   `https://kaizen-jac.org/api/config.php` are blocked (403 or 404).
+
 ### Updating the code later
 
 Run `npm run package:<site>` again and upload/extract over the old files. Saved content, uploads and inquiries

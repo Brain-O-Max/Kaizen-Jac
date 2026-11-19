@@ -34,6 +34,37 @@ const setting = (name, site) => (process.env[`${name}_${site.toUpperCase()}`] ||
 const phpString = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 const copyDir = (from, to) => fs.existsSync(from) && fs.cpSync(from, to, { recursive: true });
 
+const urlEnv = (site) => `SITE_URL_${site.toUpperCase()}`;
+const hostOf = (url) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+};
+
+// Hosting panels such as DirectAdmin put a subdomain's files in a folder of the main site (public_html/design),
+// so the main domain would also serve that site at /design/. The main site's .htaccess redirects those paths
+// to the subdomain instead.
+function rootHtaccess(site) {
+  const template = fs.readFileSync(path.join(root, 'php', 'root.htaccess'), 'utf8');
+  const mainHost = hostOf(process.env[urlEnv(site)] || '');
+  const rules = [];
+  for (const other of Object.keys(SITES)) {
+    const otherUrl = process.env[urlEnv(other)] || '';
+    const otherHost = hostOf(otherUrl);
+    if (other === site || !mainHost || !otherHost.endsWith(`.${mainHost}`)) continue;
+    const label = otherHost.slice(0, -mainHost.length - 1);
+    if (!/^[a-z0-9-]+$/i.test(label)) continue;
+    rules.push(
+      `  # ${SITES[other]} lives in the ${label}/ folder of this site; send visitors to its own address.`,
+      `  RewriteCond %{HTTP_HOST} ^(www\\.)?${mainHost.replace(/\./g, '\\.')}$ [NC]`,
+      `  RewriteRule ^${label}(/(.*))?$ https://${otherHost}/$2 [L,R=301]`
+    );
+  }
+  return template.replace(/# @SUBDOMAIN_REDIRECTS@\r?\n/,rules.length ? `${rules.join('\n')}\n` : '');
+}
+
 function packageSite(site) {
   const password = setting('ADMIN_PASSWORD', site);
   if (!password || password === 'change-me') {
@@ -90,7 +121,7 @@ return [
   // Private data folder. Deliberately no content.json, so re-uploading never wipes edits made online.
   fs.mkdirSync(path.join(out, '_data'), { recursive: true });
   fs.copyFileSync(path.join(root, 'php', 'data.htaccess'), path.join(out, '_data', '.htaccess'));
-  fs.copyFileSync(path.join(root, 'php', 'root.htaccess'), path.join(out, '.htaccess'));
+  fs.writeFileSync(path.join(out, '.htaccess'), rootHtaccess(site));
 
   // Zip for cPanel's File Manager (Upload, then Extract). Windows 10+ and macOS tar can write zip files.
   const zip = path.join(root, 'deploy', `${site}.zip`);
