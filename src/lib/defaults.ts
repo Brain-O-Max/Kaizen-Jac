@@ -1,3 +1,4 @@
+import { SITES, type SiteId } from './site';
 import type { SiteContent } from './types';
 
 // Default content used until an admin saves changes (storage/content.json).
@@ -317,3 +318,22 @@ export const defaultContent: SiteContent = {
     }
   ]
 };
+
+// Starting content for one site: only its own business and offices, with SEO text derived from the business.
+// Used until the admin saves for the first time (the PHP backend has no content.json yet).
+export function defaultContentFor(site: SiteId): SiteContent {
+  const config = SITES[site];
+  const content = structuredClone(defaultContent);
+  content.businesses = content.businesses.filter((b) => b.id === config.businessId);
+  content.umbrella.offices = content.umbrella.offices.filter((o) => o.business === config.businessId);
+  const business = content.businesses[0];
+  if (business) {
+    content.meta = {
+      ...content.meta,
+      title: `${business.name} — ${business.shortTitle} | ${content.umbrella.name}`,
+      description: business.summary,
+      keywords: config.keywords,
+    };
+  }
+  return content;
+}

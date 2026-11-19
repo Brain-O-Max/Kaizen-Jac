@@ -1,7 +1,9 @@
 'use client';
 
-import type { Business, SiteContent } from '@/lib/types';
+import { useEffect, useState } from 'react';
+import type { SiteContent } from '@/lib/types';
 import type { SiteConfig, SiteLink } from '@/lib/site';
+import { loadSavedContent } from '@/lib/api';
 import Navbar, { type NavLink } from './Navbar';
 import BusinessHero from './BusinessHero';
 import ProductCatalog from './ProductCatalog';
@@ -11,14 +13,31 @@ import Footer from './Footer';
 import { THEMES } from './theme';
 
 interface BusinessSiteProps {
-  siteData: SiteContent;
-  business: Business;
+  // Content baked in at build time; replaced by the latest content saved in the admin once it has loaded.
+  initialSiteData: SiteContent;
   site: SiteConfig;
   siteLinks: SiteLink[];
 }
 
 // One complete website: Kaizen Enterprise, Kaizen Design & Development or Kaizen Training Center.
-export default function BusinessSite({ siteData, business, site, siteLinks }: BusinessSiteProps) {
+export default function BusinessSite({ initialSiteData, site, siteLinks }: BusinessSiteProps) {
+  const [siteData, setSiteData] = useState(initialSiteData);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadSavedContent().then((saved) => {
+      if (cancelled || !saved?.businesses.some((b) => b.id === site.businessId)) return;
+      setSiteData(saved);
+      if (saved.meta.title) document.title = saved.meta.title;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [site.businessId]);
+
+  const business =
+    siteData.businesses.find((b) => b.id === site.businessId) ??
+    initialSiteData.businesses.find((b) => b.id === site.businessId)!;
   const theme = THEMES[site.theme];
   const hasProducts = Boolean(business.productCategories?.some((c) => c.items.length > 0));
 

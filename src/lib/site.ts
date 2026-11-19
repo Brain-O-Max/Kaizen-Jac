@@ -68,13 +68,6 @@ export function currentSiteId(): SiteId {
   throw new Error(`Invalid SITE "${value}". Use one of: ${SITE_IDS.join(', ')}`);
 }
 
-// True on hosts whose filesystem can't keep files (Vercel sets VERCEL), or when DEMO_READ_ONLY=1. There the
-// public site works with its default content, but the admin panel and contact form are switched off because
-// nothing they save would be kept.
-export function isReadOnlyDeployment(): boolean {
-  return Boolean(process.env.VERCEL) || process.env.DEMO_READ_ONLY === '1';
-}
-
 export function siteUrl(id: SiteId): string {
   const config = SITES[id];
   return (process.env[config.urlEnv]?.trim() || config.defaultUrl).replace(/\/+$/, '');

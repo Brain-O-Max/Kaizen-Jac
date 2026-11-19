@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Check, Download, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { ENTERPRISE_ID, type Office, type ProductCategory, type Project, type Service, type SiteContent } from '@/lib/types';
+import { API, apiFetch } from '@/lib/api';
 import ImageField from './ImageField';
 import ProductCatalogEditor from './ProductCatalogEditor';
 import TextField from './TextField';
@@ -165,18 +166,13 @@ export default function ContentEditor({ initialContent }: { initialContent: Site
       }
     }
     setStatus({ state: 'saving' });
-    const res = await fetch('/api/admin/content', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toSave),
-    });
-    if (res.ok) {
+    try {
+      await apiFetch(API.content, { method: 'PUT', body: JSON.stringify(toSave) });
       setDirty(false);
       setStatus({ state: 'saved' });
       setTimeout(() => setStatus((s) => (s.state === 'saved' ? { state: 'idle' } : s)), 3000);
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setStatus({ state: 'error', message: data.error || `Save failed (${res.status})` });
+    } catch (err) {
+      setStatus({ state: 'error', message: errorText(err) });
     }
   };
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Copy, Check, FileText, Loader2, Trash2, Upload } from 'lucide-react';
+import { API, apiFetch } from '@/lib/api';
 import { ACCEPTED_UPLOADS, uploadFiles } from '@/lib/upload';
 import type { MediaFile } from '@/lib/types';
 
@@ -14,8 +15,7 @@ export default function MediaLibrary({ initialFiles }: { initialFiles: MediaFile
   const [copied, setCopied] = useState('');
 
   const refresh = async () => {
-    const res = await fetch('/api/admin/uploads');
-    if (res.ok) setFiles(await res.json());
+    setFiles(await apiFetch<MediaFile[]>(API.uploads).catch(() => files));
   };
 
   const handleUpload = async (fileList: FileList | null) => {
@@ -34,8 +34,11 @@ export default function MediaLibrary({ initialFiles }: { initialFiles: MediaFile
 
   const handleDelete = async (name: string) => {
     if (!confirm(`Delete ${name}? Any content still pointing to it will show a broken image.`)) return;
-    const res = await fetch(`/api/admin/uploads?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
-    if (!res.ok) setError((await res.json()).error || 'Delete failed');
+    try {
+      await apiFetch(`${API.uploads}?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
+    }
     await refresh();
   };
 

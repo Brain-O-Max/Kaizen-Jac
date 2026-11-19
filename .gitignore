@@ -44,3 +44,6 @@ build
 
 # Per-site dev build folders (npm run dev:design etc.)
 .next-*
+
+# Upload packages built by npm run package:<site>
+deploy

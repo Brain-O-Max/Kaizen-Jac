@@ -1,21 +1,17 @@
-import { listInquiries } from '@/lib/content';
-import AdminNav from '@/components/admin/AdminNav';
-import InquiryList from '@/components/admin/InquiryList';
+import { SITES, currentSiteId } from '@/lib/site';
+import AdminShell from '@/components/admin/AdminShell';
+import { InquiriesPanel } from '@/components/admin/AdminPanels';
 
-export const dynamic = 'force-dynamic';
-
-export default async function InquiriesPage() {
-  const inquiries = await listInquiries();
+export default function InquiriesPage() {
   return (
-    <>
-      <AdminNav active="inquiries" />
+    <AdminShell siteName={SITES[currentSiteId()].name} active="inquiries">
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-4">
         <div>
           <h1 className="text-xl font-bold">Inquiries</h1>
-          <p className="text-sm text-slate-400">Messages sent through the website contact form.</p>
+          <p className="text-sm text-slate-400">Messages sent through the website contact form. Each one is also emailed to you.</p>
         </div>
-        <InquiryList initialInquiries={inquiries} />
+        <InquiriesPanel />
       </main>
-    </>
+    </AdminShell>
   );
 }
