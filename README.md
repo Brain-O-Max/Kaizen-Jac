@@ -140,6 +140,20 @@ DirectAdmin keeps a subdomain's files in a folder of the main site. The main sit
    check that the email arrives. Also check that `https://kaizen-jac.org/_data/` and
    `https://kaizen-jac.org/api/config.php` are blocked (403 or 404).
 
+### Publishing from your PC over FTP
+
+Instead of uploading zips in the File Manager, fill in `FTP_HOST`, `FTP_USER` and `FTP_PASSWORD` in
+`.env.production.local`, then:
+
+```bash
+node scripts/deploy-ftp.mjs all --dry-run   # shows which folder each site goes to, uploads nothing
+npm run deploy:all                          # build all three packages and upload them (or deploy:<site>)
+npm run upload:all                          # upload the existing deploy/ folders without rebuilding
+```
+
+The script only adds or replaces files, so content, inquiries and photos saved online are kept. If the folders it
+picks are wrong, set `FTP_DIR_ENTERPRISE` / `FTP_DIR_DESIGN` / `FTP_DIR_TRAINING`.
+
 ### Updating the code later
 
 Run `npm run package:<site>` again and upload/extract over the old files. Saved content, uploads and inquiries
